@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mohammad Khoshnava - Python Developer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;700&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom Styles for IDE/Terminal Theme */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1e1e1e; /* Dark IDE background */
+            color: #d4d4d4; /* Default text color */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 1rem;
+            overflow-x: hidden;
+        }
+
+        .ide-window {
+            background-color: #252526; /* Slightly lighter dark for window */
+            border: 1px solid #333333;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 1000px;
+            height: 85vh; /* Adjusted height */
+            max-height: 700px; /* Max height */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .ide-header {
+            background-color: #3c3c3c; /* Header bar color */
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #1e1e1e;
+        }
+
+        .ide-header .traffic-lights {
+            display: flex;
+        }
+
+        .ide-header .traffic-lights span {
+            display: block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .traffic-lights .red { background-color: #fc5753; }
+        .traffic-lights .yellow { background-color: #fdbb2d; }
+        .traffic-lights .green { background-color: #34c749; }
+
+        .ide-header .title-bar {
+            color: #cccccc;
+            font-size: 0.9rem;
+            margin-left: auto;
+            margin-right: auto; /* Center title */
+        }
+
+        .ide-tabs {
+            background-color: #252526;
+            padding: 0 0.5rem;
+            display: flex;
+            border-bottom: 1px solid #1e1e1e;
+            flex-wrap: wrap; /* Allow tabs to wrap on smaller screens */
+        }
+
+        .ide-tab {
+            padding: 0.75rem 1rem; /* Increased padding */
+            cursor: pointer;
+            font-size: 0.85rem; /* Slightly smaller font */
+            color: #9e9e9e;
+            border-right: 1px solid #1e1e1e;
+            transition: background-color 0.2s, color 0.2s;
+            white-space: nowrap;
+        }
+
+        .ide-tab:hover {
+            background-color: #333333;
+            color: #ffffff;
+        }
+
+        .ide-tab.active {
+            background-color: #1e1e1e; /* Active tab matches editor background */
+            color: #ffffff;
+            border-bottom: 2px solid #007acc; /* Highlight for active tab */
+        }
+
+        .ide-main-content {
+            flex-grow: 1;
+            display: flex;
+            overflow: hidden; /* Important for sidebar and editor layout */
+        }
+
+        .ide-sidebar {
+            background-color: #333333; /* Sidebar color */
+            width: 200px; /* Fixed width for sidebar */
+            padding: 1rem;
+            border-right: 1px solid #1e1e1e;
+            overflow-y: auto;
+            display: none; /* Hidden by default, shown when a relevant tab is active */
+        }
+        
+        .ide-sidebar h4 {
+            color: #00aeff;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+        }
+        .ide-sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+        .ide-sidebar li {
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            color: #cccccc;
+            font-size: 0.85rem;
+            transition: color 0.2s;
+        }
+        .ide-sidebar li:hover, .ide-sidebar li.active-skill {
+            color: #ffffff;
+        }
+
+
+        .terminal-content {
+            background-color: #1e1e1e; /* Editor/Terminal background */
+            padding: 1.5rem; /* Increased padding */
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem; /* Standard terminal font size */
+            line-height: 1.6;
+            overflow-y: auto;
+            flex-grow: 1; /* Takes remaining space */
+            height: 100%;
+        }
+
+        .terminal-content .section {
+            display: none; /* Hidden by default */
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .terminal-content .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .prompt {
+            color: #4caf50; /* Green prompt */
+        }
+
+        .command {
+            color: #80d0ff; /* Light blue for commands */
+        }
+        .output {
+            color: #d4d4d4;
+        }
+
+        h2 {
+            color: #00aeff; /* Bright blue for headings */
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #333;
+            padding-bottom: 0.5rem;
+        }
+        h3 {
+            color: #4ec9b0; /* Teal for subheadings */
+            font-size: 1.2rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .code-block {
+            background-color: #2d2d2d;
+            border: 1px solid #3f3f3f;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+            overflow-x: auto;
+            font-size: 0.85rem; /* Slightly smaller for code blocks */
+        }
+        .code-block pre {
+            margin: 0;
+        }
+        .code-block .keyword { color: #569cd6; } /* Blue for keywords */
+        .code-block .string { color: #ce9178; } /* Orange for strings */
+        .code-block .comment { color: #6a9955; } /* Green for comments */
+        .code-block .function { color: #dcdcaa; } /* Yellow for functions */
+        .code-block .variable { color: #9cdcfe; } /* Light blue for variables */
+        .code-block .decorator { color: #c586c0; } /* Purple for decorators */
+
+
+        .job-entry {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px dashed #333;
+        }
+        .job-entry:last-child {
+            border-bottom: none;
+        }
+        .job-title {
+            font-weight: 500;
+            color: #ffffff;
+        }
+        .job-company {
+            color: #4ec9b0;
+        }
+        .job-dates {
+            font-size: 0.8rem;
+            color: #888888;
+        }
+        .job-description {
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            color: #b0b0b0;
+        }
+
+        .contact-info a {
+            color: #4ec9b0;
+            text-decoration: none;
+        }
+        .contact-info a:hover {
+            text-decoration: underline;
+        }
+
+        /* Typing animation */
+        .typed-text {
+            white-space: pre-wrap; /* Allows wrapping and preserves spaces */
+            border-right: 2px solid #7f7f7f; /* Blinking cursor */
+            animation: blinkCursor 0.75s step-end infinite;
+            display: inline-block; /* Important for cursor */
+        }
+
+        @keyframes blinkCursor {
+            from, to { border-color: transparent; }
+            50% { border-color: #7f7f7f; }
+        }
+
+        /* Initial boot sequence styling */
+        .boot-sequence {
+            font-family: 'Fira Code', monospace;
+            color: #33ff33; /* Classic green terminal text */
+            white-space: pre;
+            text-align: left;
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* Hide overflow during boot */
+            display: flex; /* Center content */
+            align-items: center; /* Center content */
+            justify-content: center; /* Center content */
+        }
+        .boot-sequence div {
+            width: fit-content; /* Fit to content width */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .ide-window {
+                height: 90vh;
+                max-height: none;
+            }
+            .ide-tabs {
+                justify-content: center; /* Center tabs on small screens */
+            }
+            .ide-tab {
+                font-size: 0.8rem;
+                padding: 0.6rem 0.8rem;
+            }
+            .terminal-content {
+                padding: 1rem;
+                font-size: 0.85rem;
+            }
+            h2 { font-size: 1.3rem; }
+            h3 { font-size: 1.1rem; }
+            .ide-sidebar {
+                width: 150px; /* Smaller sidebar */
+                font-size: 0.8rem;
+            }
+            .ide-sidebar h4 { font-size: 0.85rem; }
+            .ide-sidebar li { font-size: 0.8rem; }
+        }
+        @media (max-width: 480px) {
+            .ide-header .title-bar { display: none; } /* Hide title on very small screens */
+             .ide-main-content {
+                flex-direction: column; /* Stack sidebar and content */
+            }
+            .ide-sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #1e1e1e;
+                max-height: 150px; /* Limit sidebar height */
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="ide-window">
+        <header class="ide-header">
+            <div class="traffic-lights">
+                <span class="red"></span>
+                <span class="yellow"></span>
+                <span class="green"></span>
+            </div>
+            <div class="title-bar">Mohammad Khoshnava - Resume</div>
+        </header>
+
+        <nav class="ide-tabs">
+            <div class="ide-tab active" data-target="home">README.md</div>
+            <div class="ide-tab" data-target="about">about_me.py</div>
+            <div class="ide-tab" data-target="skills">skills_showcase.js</div>
+            <div class="ide-tab" data-target="experience">experience.log</div>
+            <div class="ide-tab" data-target="contact">contact.json</div>
+        </nav>
+
+        <main class="ide-main-content">
+            <aside class="ide-sidebar" id="skillsSidebar">
+                <h4>Skills Navigator</h4>
+                <ul id="skillsListForSidebar">
+                    </ul>
+            </aside>
+            <div class="terminal-content" id="terminalContent">
+                <div class="boot-sequence" id="bootSequence">
+                    <div></div> </div>
+
+                <div class="section" id="home">
+                    </div>
+
+                <div class="section" id="about">
+                    <span class="prompt">MohammadKhoshnava $</span> <span class="command">cat ./about_me.py</span>
+                    <div class="output">
+                        <h2># about_me.py</h2>
+                        <div class="code-block">
+<pre><span class="comment"># Personal Information for Mohammad Khoshnava</span>
+
+<span class="variable">name</span> = <span class="string">"Mohammad Khoshnava"</span>
+<span class="variable">title</span> = <span class="string">"Python Developer"</span>
+<span class="variable">date_of_birth</span> = <span class="string">"1998-08-15"</span> <span class="comment"># Note: Consider privacy for public display</span>
+<span class="variable">gender</span> = <span class="string">"Male"</span>         <span class="comment"># Note: Consider privacy for public display</span>
+<span class="variable">marital_status</span> = <span class="string">"Single"</span>   <span class="comment"># Note: Consider privacy for public display</span>
+
+<span class="keyword">def</span> <span class="function">get_bio</span>():
+    <span class="variable">bio</span> = <span class="string">"""
+    I entered the world of programming in 2015. My deep interest in this field 
+    has driven me to continuously learn and enhance my skills, even in my spare time. 
+    For me, programming is more than just a job; it's a passion. I find solving 
+    complex challenges inherently attractive and am always eager to tackle new problems.
+    
+    I thrive in team environments and am particularly interested in optimizing the 
+    performance of code and database queries. My specialization lies in back-end 
+    development with Python, utilizing frameworks like gRPC, Django, and FastAPI. 
+    However, my curiosity and love for learning have also led me to explore DevOps 
+    and full-stack web development.
+    """</span>
+    <span class="keyword">return</span> <span class="variable">bio</span>
+
+<span class="keyword">if</span> __name__ == <span class="string">"__main__"</span>:
+    <span class="function">print</span>(<span class="string">f"Name: {name}"</span>)
+    <span class="function">print</span>(<span class="string">f"Title: {title}"</span>)
+    <span class="function">print</span>(<span class="string">"\n--- Bio ---"</span>)
+    <span class="function">print</span>(<span class="function">get_bio</span>())
+    <span class="comment"># print(f"DOB: {date_of_birth}, Gender: {gender}, Marital Status: {marital_status}")</span>
+</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section" id="skills">
+                    <span class="prompt">MohammadKhoshnava $</span> <span class="command">./run_skills_showcase.js</span>
+                    <div class="output">
+                        <h2>// Skills Showcase</h2>
+                        <p>My technical skill set is diverse, covering various aspects of development. Click on a skill in the sidebar (visible when this tab is active) to see an example.</p>
+                        
+                        <div id="skillDetailView">
+                            <p class="text-gray-500 italic mt-4">Select a skill from the sidebar to view a code example.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section" id="experience">
+                    <span class="prompt">MohammadKhoshnava $</span> <span class="command">tail -f experience.log</span>
+                    <div class="output">
+                        <h2>[WORK_EXPERIENCE_LOG]</h2>
+                        
+                        <div class="job-entry">
+                            <h3 class="job-title">Senior Python Developer</h3>
+                            <p class="job-company">Digify</p>
+                            <p class="job-dates">December 2024 - Present</p>
+                            <ul class="list-disc list-inside job-description">
+                                <li>Developing and maintaining scalable backend services.</li>
+                                <li>Collaborating with cross-functional teams to define and ship new features.</li>
+                                <li>Leading code reviews and mentoring junior developers.</li>
+                            </ul>
+                        </div>
+
+                        <div class="job-entry">
+                            <h3 class="job-title">Senior Python Developer</h3>
+                            <p class="job-company">Hoshify</p>
+                            <p class="job-dates">August 2024 - Present</p>
+                            <ul class="list-disc list-inside job-description">
+                                <li>Engineered robust APIs and microservices.</li>
+                                <li>Improved system performance through code optimization and query tuning.</li>
+                                <li>Integrated third-party services and managed data pipelines.</li>
+                            </ul>
+                        </div>
+
+                        <div class="job-entry">
+                            <h3 class="job-title">Senior Python Developer</h3>
+                            <p class="job-company">Tahlilgaran</p>
+                            <p class="job-dates">May 2021 - November 2024</p>
+                             <ul class="list-disc list-inside job-description">
+                                <li>Contributed to core product development using Python and Django.</li>
+                                <li>Designed and implemented database schemas (PostgreSQL, MongoDB).</li>
+                                <li>Worked with message queues like RabbitMQ for asynchronous tasks.</li>
+                            </ul>
+                        </div>
+
+                        <div class="job-entry">
+                            <h3 class="job-title">Senior Python Developer & DevOps</h3>
+                            <p class="job-company">Novin</p>
+                            <p class="job-dates">December 2020 - March 2021</p>
+                            <ul class="list-disc list-inside job-description">
+                                <li>Managed CI/CD pipelines using GitLab CI and GitHub Actions.</li>
+                                <li>Containerized applications using Docker.</li>
+                                <li>Monitored and maintained production systems.</li>
+                            </ul>
+                        </div>
+
+                        <div class="job-entry">
+                            <h3 class="job-title">Programmer</h3>
+                            <p class="job-company">NIROZAMINIO</p>
+                            <p class="job-dates">October 2018 - January 2020</p>
+                            <ul class="list-disc list-inside job-description">
+                                <li>Developed software modules according to specifications.</li>
+                                <li>Participated in testing and debugging processes.</li>
+                                <li>Gained foundational experience in software development life cycle.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="job-entry">
+                            <h3 class="job-title">Freelancer</h3>
+                            <p class="job-company">Freelancer</p>
+                            <p class="job-dates">May 2015 - September 2018</p>
+                            <ul class="list-disc list-inside job-description">
+                                <li>Undertook various small programming projects.</li>
+                                <li>Focused on web development using PHP, HTML, CSS, and JavaScript.</li>
+                                <li>Built foundational skills in client communication and project delivery.</li>
+                            </ul>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="section" id="contact">
+                    <span class="prompt">MohammadKhoshnava $</span> <span class="command">jq . &lt; contact.json</span>
+                    <div class="output">
+                        <h2>{ "contactInformation": { ... } }</h2>
+                        <div class="code-block">
+<pre>{
+  <span class="string">"name"</span>: <span class="string">"Mohammad Khoshnava"</span>,
+  <span class="string">"email"</span>: <span class="string">"me@mammad.me"</span>,
+  <span class="string">"phone"</span>: <span class="string">"+989999952069"</span>,
+  <span class="string">"profiles"</span>: [
+    {
+      <span class="string">"network"</span>: <span class="string">"LinkedIn"</span>,
+      <span class="string">"url"</span>: <span class="string">"https://www.linkedin.com/in/seyed-mohammad-khoshnava/"</span> 
+    },
+    {
+      <span class="string">"network"</span>: <span class="string">"GitHub"</span>,
+      <span class="string">"url"</span>: <span class="string">"https://github.com/mohamadkhoshnava"</span>
+    }
+  ]
+}
+</pre>
+                        </div>
+                        <div class="contact-info mt-4">
+                            <p><strong>Email:</strong> <a href="mailto:me@mammad.me">me@mammad.me</a></p>
+                            <p><strong>Phone:</strong> <a href="tel:+989999952069">+989999952069</a></p>
+                            <p>You can also find me on <a href="https://github.com/mohamadkhoshnava" target="_blank" rel="noopener noreferrer">GitHub</a> and <a href="https://www.linkedin.com/in/seyed-mohammad-khoshnava/" target="_blank" rel="noopener noreferrer">LinkedIn</a></p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // --- Configuration & Data ---
+        const skillsData = [
+            { 
+                name: "Python", 
+                category: "Backend",
+                snippet: `
+<span class="keyword">def</span> <span class="function">greet</span>(<span class="variable">name</span>):
+    <span class="comment"># A simple Python function</span>
+    <span class="variable">message</span> = <span class="string">f"Hello, {name}! Welcome to my Python skills."</span>
+    <span class="keyword">return</span> <span class="variable">message</span>
+
+<span class="function">print</span>(<span class="function">greet</span>(<span class="string">"Developer"</span>))
+                `
+            },
+            { 
+                name: "Django", 
+                category: "Backend",
+                snippet: `
+<span class="comment"># Django: Example of a simple view</span>
+<span class="keyword">from</span> django.http <span class="keyword">import</span> HttpResponse
+
+<span class="keyword">def</span> <span class="function">hello_world_view</span>(<span class="variable">request</span>):
+    <span class="variable">html_content</span> = <span class="string">"&lt;h1&gt;Hello from Django!&lt;/h1&gt;"</span>
+    <span class="keyword">return</span> <span class="function">HttpResponse</span>(<span class="variable">html_content</span>)
+                `
+            },
+            { 
+                name: "FastAPI", 
+                category: "Backend",
+                snippet: `
+<span class="comment"># FastAPI: Basic GET endpoint</span>
+<span class="keyword">from</span> fastapi <span class="keyword">import</span> FastAPI
+
+<span class="variable">app</span> = <span class="function">FastAPI</span>()
+
+<span class="decorator">@app.get("/")</span>
+<span class="keyword">async def</span> <span class="function">read_root</span>():
+    <span class="keyword">return</span> {<span class="string">"message"</span>: <span class="string">"FastAPI is running!"</span>}
+                `
+            },
+            { 
+                name: "gRPC", 
+                category: "Backend",
+                snippet: `
+<span class="comment">// Protocol Buffer Definition for a gRPC service (conceptual)</span>
+<span class="keyword">syntax</span> = <span class="string">"proto3"</span>;
+
+<span class="keyword">service</span> <span class="function">Greeter</span> {
+  <span class="keyword">rpc</span> <span class="function">SayHello</span> (<span class="variable">HelloRequest</span>) <span class="keyword">returns</span> (<span class="variable">HelloReply</span>);
+}
+
+<span class="keyword">message</span> <span class="variable">HelloRequest</span> {
+  <span class="keyword">string</span> <span class="variable">name</span> = 1;
+}
+
+<span class="keyword">message</span> <span class="variable">HelloReply</span> {
+  <span class="keyword">string</span> <span class="variable">message</span> = 1;
+}
+                `
+            },
+            { 
+                name: "JavaScript", 
+                category: "Frontend/Fullstack",
+                snippet: `
+<span class="comment">// JavaScript: Simple DOM manipulation</span>
+<span class="keyword">document</span>.<span class="function">addEventListener</span>(<span class="string">'DOMContentLoaded'</span>, () => {
+  <span class="keyword">const</span> <span class="variable">header</span> = <span class="keyword">document</span>.<span class="function">createElement</span>(<span class="string">'h3'</span>);
+  <span class="variable">header</span>.<span class="variable">textContent</span> = <span class="string">'JavaScript dynamically added this!'</span>;
+  <span class="keyword">document</span>.<span class="function">getElementById</span>(<span class="string">'skillDetailView'</span>).<span class="function">appendChild</span>(<span class="variable">header</span>);
+});
+                `
+            },
+            { name: "HTML", category: "Frontend", snippet: `<span class="comment">&lt;!-- HTML: Basic structure --&gt;</span>\n<span class="keyword">&lt;!DOCTYPE html&gt;</span>\n<span class="keyword">&lt;html <span class="variable">lang</span>=<span class="string">"en"</span>&gt;</span>\n  <span class="keyword">&lt;head&gt;</span>\n    <span class="keyword">&lt;title&gt;</span>My Page<span class="keyword">&lt;/title&gt;</span>\n  <span class="keyword">&lt;/head&gt;</span>\n  <span class="keyword">&lt;body&gt;</span>\n    <span class="keyword">&lt;h1&gt;</span>Hello, HTML!<span class="keyword">&lt;/h1&gt;</span>\n  <span class="keyword">&lt;/body&gt;</span>\n<span class="keyword">&lt;/html&gt;</span>` },
+            { name: "CSS", category: "Frontend", snippet: `<span class="comment">/* CSS: Simple styling */</span>\n<span class="variable">body</span> {\n  <span class="keyword">font-family</span>: <span class="string">'Arial'</span>, <span class="variable">sans-serif</span>;\n  <span class="keyword">background-color</span>: <span class="variable">#f0f0f0</span>;\n}\n<span class="variable">h1</span> {\n  <span class="keyword">color</span>: <span class="variable">#333</span>;\n}` },
+            { name: "Vue.js", category: "Frontend", snippet: `<span class="comment">&lt;!-- Vue.js: Simple component template --&gt;</span>\n<span class="keyword">&lt;template&gt;</span>\n  <span class="keyword">&lt;div&gt;</span>\n    <span class="keyword">&lt;h1&gt;</span>{{ message }}<span class="keyword">&lt;/h1&gt;</span>\n    <span class="keyword">&lt;button <span class="variable">@click</span>=<span class="string">"changeMessage"</span>&gt;</span>Click Me<span class="keyword">&lt;/button&gt;</span>\n  <span class="keyword">&lt;/div&gt;</span>\n<span class="keyword">&lt;/template&gt;</span>\n\n<span class="keyword">&lt;script&gt;</span>\n<span class="keyword">export default</span> {\n  <span class="variable">data</span>() {\n    <span class="keyword">return</span> { <span class="variable">message</span>: <span class="string">'Hello Vue!'</span> };\n  },\n  <span class="variable">methods</span>: {\n    <span class="function">changeMessage</span>() {\n      <span class="keyword">this</span>.<span class="variable">message</span> = <span class="string">'Vue is reactive!'</span>;\n    }\n  }\n};\n<span class="keyword">&lt;/script&gt;</span>` },
+            { name: "Docker", category: "DevOps", snippet: `<span class="comment"># Dockerfile: Basic Python application</span>\n<span class="keyword">FROM</span> python:3.9-slim\n\n<span class="keyword">WORKDIR</span> /app\n<span class="keyword">COPY</span> requirements.txt .\n<span class="keyword">RUN</span> pip install --no-cache-dir -r requirements.txt\n<span class="keyword">COPY</span> . .\n\n<span class="keyword">CMD</span> [<span class="string">"python"</span>, <span class="string">"app.py"</span>]` },
+            { name: "GitLab CI/CD", category: "DevOps", snippet: `<span class="comment"># .gitlab-ci.yml: Simple pipeline</span>\n<span class="variable">stages</span>:\n  - <span class="variable">build</span>\n  - <span class="variable">test</span>\n\n<span class="variable">build_job</span>:\n  <span class="variable">stage</span>: <span class="variable">build</span>\n  <span class="variable">script</span>:\n    - <span class="function">echo</span> <span class="string">"Building the project..."</span>\n\n<span class="variable">test_job</span>:\n  <span class="variable">stage</span>: <span class="variable">test</span>\n  <span class="variable">script</span>:\n    - <span class="function">echo</span> <span class="string">"Running tests..."</span>` },
+            { name: "GitHub Actions", category: "DevOps", snippet: `<span class="comment"># .github/workflows/main.yml: Basic workflow</span>\n<span class="variable">name</span>: <span class="variable">CI</span>\n<span class="variable">on</span>: [<span class="variable">push</span>]\n<span class="variable">jobs</span>:\n  <span class="variable">build</span>:\n    <span class="variable">runs-on</span>: <span class="variable">ubuntu-latest</span>\n    <span class="variable">steps</span>:\n      - <span class="variable">uses</span>: <span class="variable">actions/checkout@v3</span>\n      - <span class="variable">name</span>: <span class="variable">Run a one-line script</span>\n        <span class="variable">run</span>: <span class="function">echo</span> <span class="string">"Hello, GitHub Actions!"</span>` },
+            { name: "Redis", category: "Databases/Caching", snippet: `<span class="comment">// Node.js with 'redis' client (conceptual)</span>\n<span class="keyword">const</span> <span class="variable">redis</span> = <span class="keyword">require</span>(<span class="string">'redis'</span>);\n<span class="keyword">const</span> <span class="variable">client</span> = <span class="variable">redis</span>.<span class="function">createClient</span>();\n\n<span class="keyword">async function</span> <span class="function">cacheExample</span>() {\n  <span class="keyword">await</span> <span class="variable">client</span>.<span class="function">connect</span>();\n  <span class="keyword">await</span> <span class="variable">client</span>.<span class="function">set</span>(<span class="string">'mykey'</span>, <span class="string">'Hello Redis!'</span>);\n  <span class="keyword">const</span> <span class="variable">value</span> = <span class="keyword">await</span> <span class="variable">client</span>.<span class="function">get</span>(<span class="string">'mykey'</span>);\n  <span class="function">console</span>.<span class="function">log</span>(<span class="variable">value</span>);\n  <span class="keyword">await</span> <span class="variable">client</span>.<span class="function">quit</span>();\n}\n<span class="function">cacheExample</span>();` },
+            { name: "PostgreSQL", category: "Databases", snippet: `<span class="comment">-- SQL: Basic SELECT query</span>\n<span class="keyword">SELECT</span> <span class="variable">id</span>, <span class="variable">name</span>, <span class="variable">email</span>\n<span class="keyword">FROM</span> <span class="variable">users</span>\n<span class="keyword">WHERE</span> <span class="variable">status</span> = <span class="string">'active'</span>;` },
+            { name: "MongoDB", category: "Databases", snippet: `<span class="comment">// MongoDB Shell: Basic find query</span>\n<span class="variable">db</span>.<span class="variable">users</span>.<span class="function">find</span>({\n  <span class="variable">status</span>: <span class="string">"active"</span>,\n  <span class="variable">age</span>: { <span class="variable">$gt</span>: 25 }\n}).<span class="function">pretty</span>();` },
+            { name: "Neo4j", category: "Databases", snippet: `<span class="comment">// Cypher Query: Find related nodes</span>\n<span class="keyword">MATCH</span> (<span class="variable">p1</span>:<span class="variable">Person</span> {<span class="variable">name</span>: <span class="string">'Alice'</span>})-[<span class="variable">r</span>:<span class="variable">KNOWS</span>]-(<span class="variable">p2</span>:<span class="variable">Person</span>)\n<span class="keyword">RETURN</span> <span class="variable">p2</span>.<span class="variable">name</span>;` },
+            { name: "RabbitMQ", category: "Messaging", snippet: `<span class="comment">// Python with 'pika' (conceptual producer)</span>\n<span class="keyword">import</span> pika\n<span class="variable">connection</span> = pika.<span class="function">BlockingConnection</span>(pika.<span class="function">ConnectionParameters</span>(<span class="string">'localhost'</span>))\n<span class="variable">channel</span> = <span class="variable">connection</span>.<span class="function">channel</span>()\n<span class="variable">channel</span>.<span class="function">queue_declare</span>(<span class="variable">queue</span>=<span class="string">'hello'</span>)\n<span class="variable">channel</span>.<span class="function">basic_publish</span>(<span class="variable">exchange</span>=<span class="string">''</span>, <span class="variable">routing_key</span>=<span class="string">'hello'</span>, <span class="variable">body</span>=<span class="string">'Hello RabbitMQ!'</span>)\n<span class="function">print</span>(<span class="string">" [x] Sent 'Hello RabbitMQ!'"</span>)\n<span class="variable">connection</span>.<span class="function">close</span>()` },
+            { name: "WebRTC", category: "Web Technologies", snippet: `<span class="comment">// JavaScript: Basic PeerConnection setup (conceptual)</span>\n<span class="keyword">const</span> <span class="variable">pc</span> = <span class="keyword">new</span> <span class="function">RTCPeerConnection</span>();\n<span class="variable">pc</span>.<span class="function">onicecandidate</span> = <span class="variable">event</span> => {\n  <span class="keyword">if</span> (<span class="variable">event</span>.<span class="variable">candidate</span>) {\n    <span class="comment">// Send candidate to the remote peer</span>\n  }\n};\n<span class="comment">// Add tracks, create offer/answer, etc.</span>` },
+            { name: "Lua", category: "Scripting", snippet: `<span class="comment">-- Lua: Simple print statement</span>\n<span class="function">print</span>(<span class="string">"Hello from Lua!"</span>)\n\n<span class="keyword">function</span> <span class="function">factorial</span>(<span class="variable">n</span>)\n  <span class="keyword">if</span> <span class="variable">n</span> == 0 <span class="keyword">then</span>\n    <span class="keyword">return</span> 1\n  <span class="keyword">else</span>\n    <span class="keyword">return</span> <span class="variable">n</span> * <span class="function">factorial</span>(<span class="variable">n</span> - 1)\n  <span class="keyword">end</span>\n<span class="keyword">end</span>\n<span class="function">print</span>(<span class="string">"Factorial of 5 is "</span> .. <span class="function">factorial</span>(5))` },
+            { name: "PHP", category: "Backend", snippet: `<span class="comment">&lt;?php</span>\n<span class="comment">// PHP: Simple echo</span>\n<span class="variable">$greeting</span> = <span class="string">"Hello from PHP!"</span>;\n<span class="keyword">echo</span> <span class="variable">$greeting</span>;\n\n<span class="keyword">function</span> <span class="function">add</span>(<span class="variable">$a</span>, <span class="variable">$b</span>) {\n  <span class="keyword">return</span> <span class="variable">$a</span> + <span class="variable">$b</span>;\n}\n<span class="keyword">echo</span> <span class="string">"\n2 + 3 = "</span> . <span class="function">add</span>(2, 3);\n<span class="comment">?&gt;</span>` }
+        ];
+
+        const welcomeText = `
+<span class="prompt">MohammadKhoshnava $</span> <span class="command">./initialize_profile.sh</span>
+<div class="output">
+Initializing Mohammad Khoshnava's Interactive Resume... DONE
+Booting kernel... OK
+Loading modules...
+  [OK] core/bio_loader
+  [OK] skills/interpreter_python
+  [OK] skills/interpreter_js
+  [OK] experience/log_parser
+  [OK] contact/json_formatter
+All systems go. Welcome!
+</div>
+<br>
+<span class="prompt">MohammadKhoshnava $</span> <span class="command">echo "Welcome to my interactive resume!"</span>
+<div class="output">
+Welcome to my interactive resume!
+I'm Mohammad Khoshnava, a Python Developer passionate about solving complex challenges
+and building efficient software.
+<br>
+Navigate using the tabs above to explore:
+- <span class="command">about_me.py</span>: Learn more about my background and motivations.
+- <span class="command">skills_showcase.js</span>: Discover my technical capabilities with code examples.
+- <span class="command">experience.log</span>: Review my professional journey.
+- <span class="command">contact.json</span>: Find out how to get in touch.
+</div>
+<br>
+<span class="prompt">MohammadKhoshnava $</span> <span class="typed-text"></span>
+`;
+
+
+        // --- DOM Elements ---
+        const tabs = document.querySelectorAll('.ide-tab');
+        const sections = document.querySelectorAll('.terminal-content .section');
+        const terminalContent = document.getElementById('terminalContent');
+        const bootSequenceContainer = document.getElementById('bootSequence');
+        const homeSectionContent = document.getElementById('home');
+        const skillsSidebar = document.getElementById('skillsSidebar');
+        const skillsListForSidebar = document.getElementById('skillsListForSidebar');
+        const skillDetailView = document.getElementById('skillDetailView');
+
+
+        // --- Functions ---
+
+        // Typing animation function
+        function typeText(element, text, speed, callback) {
+            let i = 0;
+            element.innerHTML = ""; // Clear previous content
+            const typingInterval = setInterval(() => {
+                if (i < text.length) {
+                    element.innerHTML += text.charAt(i);
+                    i++;
+                    terminalContent.scrollTop = terminalContent.scrollHeight; // Auto-scroll
+                } else {
+                    clearInterval(typingInterval);
+                    if (callback) callback();
+                }
+            }, speed);
+        }
+        
+        // Boot sequence animation
+        function runBootSequence() {
+            const bootTextContainer = bootSequenceContainer.querySelector('div');
+            const lines = [
+                "INIT: Bootloader v1.2.0",
+                "MEMCHK: 2048MB RAM detected... OK",
+                "CPU: Quantum Entanglement Processor @ 5.0 GHz (Simulated)",
+                "LOADING CORE SYSTEM...",
+                "[CORE] Kernel_MK_v2.5 initializing...",
+                "[CORE] Mounting /dev/resume_data...",
+                "[CORE] Filesystem check... OK",
+                "LOADING MODULES:",
+                "  [MOD] ui_interface_terminal.mod... LOADED",
+                "  [MOD] content_parser_dynamic.mod... LOADED",
+                "  [MOD] animation_engine_vfx.mod... LOADED",
+                "SYSTEM READY. Awaiting user interaction.",
+                "Welcome, guest. Type 'help' for commands (or use tabs).",
+                " ",
+                "Mohammad Khoshnava - Interactive Resume [Version 1.0.0]",
+                "(c) 2025 Mohammad Khoshnava. All rights reserved.",
+                " ",
+                "Starting UI..."
+            ];
+            let lineIndex = 0;
+            bootTextContainer.innerHTML = ""; // Clear previous content
+
+            function typeBootLine() {
+                if (lineIndex < lines.length) {
+                    const p = document.createElement('p');
+                    bootTextContainer.appendChild(p);
+                    typeText(p, lines[lineIndex], 20, () => { // Faster typing for boot
+                        lineIndex++;
+                        bootSequenceContainer.scrollTop = bootSequenceContainer.scrollHeight;
+                        setTimeout(typeBootLine, lines[lineIndex-1] === " " ? 50 : 100); // Pause for empty lines or short delay
+                    });
+                } else {
+                    // Boot sequence finished
+                    setTimeout(() => {
+                        bootSequenceContainer.style.display = 'none';
+                        document.getElementById('home').classList.add('active'); // Show home section
+                        // Start typing welcome message in home section
+                        const typedTextElement = homeSectionContent.querySelector('.typed-text') || document.createElement('span');
+                        if (!homeSectionContent.querySelector('.typed-text')) {
+                             typedTextElement.className = 'typed-text'; // Ensure it has the class for the cursor
+                        }
+                        // Clear existing content and append the structure for typing
+                        homeSectionContent.innerHTML = welcomeText.replace('<span class="typed-text"></span>', ''); // Remove placeholder if any
+                        homeSectionContent.insertAdjacentHTML('beforeend', '<span class="prompt">MohammadKhoshnava $ </span><span class="typed-text"></span>');
+                        
+                        const actualTypedElement = homeSectionContent.querySelector('.typed-text');
+                        typeText(actualTypedElement, "cat README.md", 50, () => {
+                            actualTypedElement.style.borderRight = 'none'; // Remove cursor after typing command
+                            // Simulate command output
+                            const outputDiv = document.createElement('div');
+                            outputDiv.className = 'output';
+                            outputDiv.innerHTML = welcomeText.substring(welcomeText.indexOf('<div class="output">')); // Get the rest of the welcome message
+                            homeSectionContent.innerHTML = welcomeText; // Set the full welcome text directly for proper HTML rendering
+                            terminalContent.scrollTop = terminalContent.scrollHeight;
+                        });
+
+                    }, 500);
+                }
+            }
+            typeBootLine();
+        }
+
+
+        // Function to switch tabs
+        function switchTab(targetId) {
+            // Hide all sections
+            sections.forEach(section => section.classList.remove('active'));
+            // Show target section
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+
+            // Update active tab style
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.dataset.target === targetId) {
+                    tab.classList.add('active');
+                }
+            });
+
+            // Show/hide skills sidebar
+            if (targetId === 'skills') {
+                skillsSidebar.style.display = 'block';
+            } else {
+                skillsSidebar.style.display = 'none';
+            }
+            terminalContent.scrollTop = 0; // Scroll to top of new section
+        }
+
+        // Populate skills sidebar and handle clicks
+        function populateSkills() {
+            skillsData.forEach(skill => {
+                const li = document.createElement('li');
+                li.textContent = skill.name;
+                li.dataset.skillName = skill.name;
+                li.onclick = () => displaySkillDetail(skill.name);
+                skillsListForSidebar.appendChild(li);
+            });
+        }
+
+        // Display skill detail
+        function displaySkillDetail(skillName) {
+            const skill = skillsData.find(s => s.name === skillName);
+            if (skill) {
+                skillDetailView.innerHTML = `
+                    <h3>// ${skill.name} (${skill.category})</h3>
+                    <div class="code-block">
+                        <pre>${skill.snippet.trim()}</pre>
+                    </div>
+                `;
+                 // Highlight active skill in sidebar
+                document.querySelectorAll('#skillsListForSidebar li').forEach(li => {
+                    li.classList.remove('active-skill');
+                    if (li.dataset.skillName === skillName) {
+                        li.classList.add('active-skill');
+                    }
+                });
+            }
+             terminalContent.scrollTop = terminalContent.scrollHeight; // Scroll to bottom to ensure visibility
+        }
+
+        // --- Event Listeners ---
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                switchTab(tab.dataset.target);
+            });
+        });
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            runBootSequence(); // Start with boot sequence
+            populateSkills();
+            // Initially, no tab is "active" in JS logic until boot sequence completes
+            // The 'home' tab is visually active by default in HTML.
+        });
+
+    </script>
+</body>
+</html>
